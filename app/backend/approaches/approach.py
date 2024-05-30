@@ -1,6 +1,14 @@
 import os
 from abc import ABC
 from dataclasses import dataclass
+from urllib.parse import urljoin
+import aiohttp
+from azure.search.documents.aio import SearchClient
+from openai import AsyncOpenAI
+from openai.types.chat import ChatCompletionMessageParam
+from core.authentication import AuthenticationHelper
+from text import nonewlines
+
 from typing import (
     Any,
     AsyncGenerator,
@@ -12,21 +20,14 @@ from typing import (
     Union,
     cast,
 )
-from urllib.parse import urljoin
 
-import aiohttp
-from azure.search.documents.aio import SearchClient
 from azure.search.documents.models import (
     QueryCaptionResult,
     QueryType,
     VectorizedQuery,
     VectorQuery,
 )
-from openai import AsyncOpenAI
-from openai.types.chat import ChatCompletionMessageParam
 
-from core.authentication import AuthenticationHelper
-from text import nonewlines
 
 
 @dataclass
@@ -45,6 +46,9 @@ class Document:
     reranker_score: Optional[float] = None
 
     def serialize_for_results(self) -> dict[str, Any]:
+        """
+        Serializes the Document object for results.
+        """
         return {
             "id": self.id,
             "content": self.content,
